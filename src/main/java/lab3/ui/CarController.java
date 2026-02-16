@@ -52,6 +52,11 @@ public final class CarController {
     for (Vehicle car : cars) { car.gas(gas); }
   }
 
+  void brake(int amount) {
+    double brakePwr = ((double) amount) / 100;
+    for (Vehicle car : cars) { car.brake(brakePwr); }
+  }
+
   public static void main(String[] args) {
     // Instance of this class
     CarController cc = new CarController();
