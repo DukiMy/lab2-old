@@ -1,50 +1,37 @@
 package lab3.ui;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
-
-import java.io.IOException;
+import lab3.Vehicle;
 
 import javax.imageio.ImageIO;
+import java.io.IOException;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
-/**
- * This panel represents the animated part of the view with the car images.
- */
-public class DrawPanel extends JPanel{
+import java.awt.Point;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 
-  // Just a single image, TODO: Generalize
-  BufferedImage volvoImage;
-  // To keep track of a single car's position
-  Point volvoPoint = new Point();
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-  BufferedImage volvoWorkshopImage;
-  Point volvoWorkshopPoint = new Point(300,300);
+import static java.awt.Color.GREEN;
 
-  // TODO: Make this general for all cars
-  void moveit(int x, int y){
-    volvoPoint.x = x;
-    volvoPoint.y = y;
-  }
+public final class DrawPanel extends JPanel {
 
-  // Initializes the panel and reads the images
-  public DrawPanel(int x, int y) {
-    this.setDoubleBuffered(true);
-    this.setPreferredSize(new Dimension(x, y));
-    this.setBackground(Color.green);
-    // Print an error message in case file is not found with a try/catch block
+  private final Map<Vehicle, BufferedImage> sprites = new LinkedHashMap<>();
+
+  private BufferedImage workshopImage;
+  private final Point workshopPoint = new Point(0, 800 - 340);
+
+  public DrawPanel(Dimension dim) {
+    setDoubleBuffered(true);
+    setPreferredSize(dim);
+    setBackground(GREEN);
+
     try {
-      // You can remove the "pics" part if running outside of IntelliJ and
-      // everything is in the same main folder.
-      // volvoImage = ImageIO.read(new File("Volvo240.jpg"));
-
-      // Rememember to rightclick src New -> Package -> name: pics -> MOVE *.jpg to pics.
-      // if you are starting in IntelliJ.
-      volvoImage = ImageIO.read(
-        DrawPanel.class.getResourceAsStream("/pics/Volvo240.jpg")
-      );
-      volvoWorkshopImage = ImageIO.read(
+      workshopImage = ImageIO.read(
         DrawPanel.class.getResourceAsStream("/pics/VolvoBrand.jpg")
       );
     } catch (IOException ex) {
@@ -52,11 +39,39 @@ public class DrawPanel extends JPanel{
     }
   }
 
-  // This method is called each time the panel updates/refreshes/repaints itself
+  public void addVehicle(Vehicle v, BufferedImage img) {
+    sprites.put(v, img);
+  }
+
+  public void removeVehicle(Vehicle v) {
+    sprites.remove(v);
+  }
+
+  public BufferedImage getImage(Vehicle v) {
+    return sprites.get(v);
+  }
+
+  public Rectangle2D getWorkshopRect() {
+    if (workshopImage == null) return new Rectangle2D.Double(workshopPoint.x, workshopPoint.y, 0, 0);
+    return new Rectangle2D.Double(workshopPoint.x, workshopPoint.y, workshopImage.getWidth(), workshopImage.getHeight());
+  }
+
   @Override
   protected void paintComponent(Graphics g) {
     super.paintComponent(g);
-    g.drawImage(volvoImage, volvoPoint.x, volvoPoint.y, null); // see javadoc for more info on the parameters
-    g.drawImage(volvoWorkshopImage, volvoWorkshopPoint.x, volvoWorkshopPoint.y, null);
+
+    if (workshopImage != null) {
+      g.drawImage(workshopImage, workshopPoint.x, workshopPoint.y, null);
+    }
+
+    for (Map.Entry<Vehicle, BufferedImage> e : sprites.entrySet()) {
+      Vehicle v = e.getKey();
+      BufferedImage img = e.getValue();
+      if (img == null) continue;
+
+      int x = (int) Math.round(v.getX());
+      int y = (int) Math.round(v.getY());
+      g.drawImage(img, x, y, null);
+    }
   }
 }

@@ -2,71 +2,173 @@ package lab3.ui;
 
 import lab3.*;
 
-import javax.swing.*;
+import javax.imageio.ImageIO;
+import javax.swing.Timer;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 
+
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-/**
-* This class represents the Controller part in the MVC pattern.
-* It's responsibilities is to listen to the View and responds in a appropriate manner by
-* modifying the model state and the updating the view.
- */
 public final class CarController {
 
-  // The delay (ms) corresponds to 20 updates a sec (hz)
-  private final int delay = 50;
-  // The timer is started with a listener (see below) that executes the statements
-  // each step between delays.
-  private Timer timer = new Timer(delay, new TimerListener());
+  private static final int DELAY_MS = 50; // 20 Hz
+  private final Timer timer = new Timer(DELAY_MS, new TimerListener());
 
-  // The frame that represents this instance View of the MVC pattern
   CarView frame;
 
-  // A list of cars, modify if needed
-  ArrayList<Vehicle> cars = new ArrayList<>();
+  private final List<Vehicle> cars = new ArrayList<>();
 
-  /**
-  * Each step the TimerListener moves all the cars in the list and tells the
-  * view to update its images. Change this method to your needs.
-  */
- private class TimerListener implements ActionListener {
-   public void actionPerformed(ActionEvent e) {
+  private final Volvo240 volvo = new Volvo240();
+  private final Saab95 saab = new Saab95();
+  private final Scania scania = new Scania();
 
-     for (Vehicle car : cars) {
-       car.move();
-       int x = (int) Math.round(car.getX());
-       int y = (int) Math.round(car.getY());
-       frame.drawPanel.moveit(x, y);
-       // repaint() calls the paintComponent method of the panel
-       frame.drawPanel.repaint();
+  private final Garage<Volvo240> volvoWorkshop =
+    new Garage<>(Volvo240.class, new Point2D.Double(0, 800 - 340), 10);
+
+  private class TimerListener implements ActionListener {
+    @Override
+    public void actionPerformed(final ActionEvent e) {
+
+      for (int i = 0; i < cars.size(); i++) {
+        Vehicle car = cars.get(i);
+
+        car.move();
+
+        bounceIfNeeded(car);
+
+        if (car instanceof Volvo240) {
+          if (hitsWorkshop(car)) {
+            boolean loaded = volvoWorkshop.load();
+            if (loaded) {
+              frame.drawPanel.removeVehicle(car);
+              cars.remove(i);
+              i--;
+              continue;
+            }
+          }
+        }
       }
+
+      frame.drawPanel.repaint();
     }
   }
 
-  // Calls the gas method for each car once
+  // TODO: Flyttas till domänmodell
+  private boolean hitsWorkshop(final Vehicle car) {
+    double dx = car.getX() - volvoWorkshop.getX();
+    double dy = car.getY() - volvoWorkshop.getY();
+    return (dx*dx + dy*dy) <= 10.0*10.0; // samma som LOAD_RADIUS
+  }
+
+  // TODO: Flyttas till domänmodell
+  private void bounceIfNeeded(final Vehicle car) {
+    BufferedImage img = frame.drawPanel.getImage(car);
+    if (img == null) return;
+
+    int panelW = frame.drawPanel.getWidth();
+    int panelH = frame.drawPanel.getHeight();
+
+    double x = car.getX();
+    double y = car.getY();
+    double w = img.getWidth();
+    double h = img.getHeight();
+
+    boolean hitWall =
+      (x < 0) || (y < 0) ||
+      (x + w > panelW) || (y + h > panelH);
+
+    if (!hitWall) return;
+
+    // stoppa helt
+    car.stopEngine();
+
+    // clampa in så bilen inte fastnar "utanför"
+    double cx = clamp(x, 0, Math.max(0, panelW - w));
+    double cy = clamp(y, 0, Math.max(0, panelH - h));
+    car.mutatePoint(cx, cy);
+
+    // invertera riktning
+    car.invertDirection();
+
+    // starta igen
+    car.startEngine();
+  }
+
+  // TODO: Flyttas till domänmodell
+  private static double clamp(final double v, final double min, final double max) {
+    if (v < min) return min;
+    if (v > max) return max;
+    return v;
+  }
+
   void gas(int amount) {
-    double gas = ((double) amount) / 100;
-    for (Vehicle car : cars) { car.gas(gas); }
+    double gas = amount / 100.0d;
+    for (Vehicle car : cars) car.gas(gas);
   }
 
-  void brake(int amount) {
-    double brakePwr = ((double) amount) / 100;
-    for (Vehicle car : cars) { car.brake(brakePwr); }
+  void brake(final int amount) {
+    double brake = amount / 100.0d;
+    for (Vehicle car : cars) car.brake(brake);
   }
 
-  public static void main(String[] args) {
-    // Instance of this class
+  void startAll() {
+    for (Vehicle car : cars) car.startEngine();
+  }
+
+  void stopAll() {
+    for (Vehicle car : cars) car.stopEngine();
+  }
+
+  void saabTurboOn() { saab.setTurbo(true); }
+  void saabTurboOff() { saab.setTurbo(false); }
+
+  void scaniaLiftBed() {
+    scania.setTipBedAngle((byte) 1);
+  }
+
+  void scaniaLowerBed() {
+    scania.setTipBedAngle((byte) 0);
+  }
+
+  public static void main() {
     CarController cc = new CarController();
 
-    cc.cars.add(new Volvo240());
+    cc.volvo.mutatePoint(0, 0);
+    cc.saab.mutatePoint(0, 100);
+    cc.scania.mutatePoint(0, 200);
 
-    // Start a new view and send a reference of self
+    cc.cars.add(cc.volvo);
+    cc.cars.add(cc.saab);
+    cc.cars.add(cc.scania);
+
     cc.frame = new CarView("CarSim 1.0", cc);
 
-    // Start the timer
+    try {
+      BufferedImage volvoImg = ImageIO.read(
+        DrawPanel.class.getResourceAsStream("/pics/Volvo240.jpg")
+      );
+      BufferedImage saabImg = ImageIO.read(
+        DrawPanel.class.getResourceAsStream("/pics/Saab95.jpg")
+      );
+      BufferedImage scaniaImg = ImageIO.read(
+        DrawPanel.class.getResourceAsStream("/pics/Scania.jpg")
+      );
+
+      cc.frame.drawPanel.addVehicle(cc.volvo, volvoImg);
+      cc.frame.drawPanel.addVehicle(cc.saab, saabImg);
+      cc.frame.drawPanel.addVehicle(cc.scania, scaniaImg);
+
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    }
+
     cc.timer.start();
   }
 }
