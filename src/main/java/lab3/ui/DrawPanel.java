@@ -25,7 +25,7 @@ public final class DrawPanel extends JPanel {
   private BufferedImage workshopImage;
   private final Point workshopPoint = new Point(0, 800 - 340);
 
-  public DrawPanel(Dimension dim) {
+  public DrawPanel(final Dimension dim) {
     setDoubleBuffered(true);
     setPreferredSize(dim);
     setBackground(GREEN);
@@ -39,15 +39,15 @@ public final class DrawPanel extends JPanel {
     }
   }
 
-  public void addVehicle(Vehicle v, BufferedImage img) {
+  public void addVehicle(final Vehicle v, final BufferedImage img) {
     sprites.put(v, img);
   }
 
-  public void removeVehicle(Vehicle v) {
+  public void removeVehicle(final Vehicle v) {
     sprites.remove(v);
   }
 
-  public BufferedImage getImage(Vehicle v) {
+  public BufferedImage getImage(final Vehicle v) {
     return sprites.get(v);
   }
 
@@ -57,7 +57,7 @@ public final class DrawPanel extends JPanel {
   }
 
   @Override
-  protected void paintComponent(Graphics g) {
+  protected void paintComponent(final Graphics g) {
     super.paintComponent(g);
 
     if (workshopImage != null) {

@@ -1,16 +1,18 @@
 package lab3.ui;
 
-import lab3.*;
+import lab3.Vehicle;
+import lab3.Volvo240;
+import lab3.Saab95;
+import lab3.Scania;
+import lab3.Garage;
 
 import javax.imageio.ImageIO;
 import javax.swing.Timer;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -86,7 +88,6 @@ public final class CarController {
 
     if (!hitWall) return;
 
-    // stoppa helt
     car.stopEngine();
 
     // clampa in så bilen inte fastnar "utanför"
@@ -94,10 +95,7 @@ public final class CarController {
     double cy = clamp(y, 0, Math.max(0, panelH - h));
     car.mutatePoint(cx, cy);
 
-    // invertera riktning
     car.invertDirection();
-
-    // starta igen
     car.startEngine();
   }
 
@@ -118,24 +116,17 @@ public final class CarController {
     for (Vehicle car : cars) car.brake(brake);
   }
 
-  void startAll() {
-    for (Vehicle car : cars) car.startEngine();
-  }
+  void startAll() { for (Vehicle car : cars) car.startEngine(); }
 
-  void stopAll() {
-    for (Vehicle car : cars) car.stopEngine();
-  }
+  void stopAll() { for (Vehicle car : cars) car.stopEngine(); }
 
   void saabTurboOn() { saab.setTurbo(true); }
+
   void saabTurboOff() { saab.setTurbo(false); }
 
-  void scaniaLiftBed() {
-    scania.setTipBedAngle((byte) 1);
-  }
+  void scaniaLiftBed() { scania.setTipBedAngle((byte) 1); }
 
-  void scaniaLowerBed() {
-    scania.setTipBedAngle((byte) 0);
-  }
+  void scaniaLowerBed() { scania.setTipBedAngle((byte) 0); }
 
   public static void main() {
     CarController cc = new CarController();

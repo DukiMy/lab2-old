@@ -30,7 +30,7 @@ public final class CarView extends JFrame {
   private static final Dimension RIGHT_C_PANEL_DIM = new Dimension((int) (FRAME_DIM.getWidth() / 2) + 4, 200);
   private static final Dimension LEFT_C_PANEL_DIM = new Dimension((int) (FRAME_DIM.getWidth() / 5) - 15, 200);
 
-  final CarController carC;
+  final CarController cc;
 
   final DrawPanel drawPanel = new DrawPanel(D_PANEL_DIM);
 
@@ -54,11 +54,10 @@ public final class CarView extends JFrame {
     /* Steglängd */ 1
   ));
 
-
   int gasAmount = 0;
 
-  public CarView(String framename, CarController cc) {
-    this.carC = cc;
+  public CarView(final String framename, final CarController cc) {
+    this.cc = cc;
     initComponents(framename);
   }
 
@@ -104,42 +103,42 @@ public final class CarView extends JFrame {
 
     gasButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.gas(gasAmount); }
+      public void actionPerformed(final ActionEvent e) { cc.gas(gasAmount); }
     });
 
     brakeButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.brake(gasAmount); }
+      public void actionPerformed(final ActionEvent e) { cc.brake(gasAmount); }
     });
 
     startButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.startAll(); }
+      public void actionPerformed(final ActionEvent e) { cc.startAll(); }
     });
 
     stopButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.stopAll(); }
+      public void actionPerformed(final ActionEvent e) { cc.stopAll(); }
     });
 
     turboOnButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.saabTurboOn(); }
+      public void actionPerformed(final ActionEvent e) { cc.saabTurboOn(); }
     });
 
     turboOffButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.saabTurboOff(); }
+      public void actionPerformed(final ActionEvent e) { cc.saabTurboOff(); }
     });
 
     liftBedButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.scaniaLiftBed(); }
+      public void actionPerformed(final ActionEvent e) { cc.scaniaLiftBed(); }
     });
 
     lowerBedButton.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(final ActionEvent e) { carC.scaniaLowerBed(); }
+      public void actionPerformed(final ActionEvent e) { cc.scaniaLowerBed(); }
     });
 
     pack();
